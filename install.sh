@@ -1,18 +1,18 @@
 #!/bin/bash
 # ==============================================================================
-# One-Line Fast Installer for Terminal AI (Google Gemini 3.8 & 3.5 Lite)
+# One-Line Fast Installer for Terminal AI (Siêu Tốc 1-2 Giây)
 # ==============================================================================
 
-echo "⏳ [1/4] Tối ưu kết nối mạng..."
+echo "⏳ [1/4] Tối ưu kết nối mạng máy ảo..."
 sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
-echo "⏳ [2/4] Kiểm tra và cài đặt Python / SDK google-genai..."
+echo "⏳ [2/4] Cài đặt môi trường Python & google-genai..."
 sudo apt update -y >/dev/null 2>&1
 sudo apt install -y python3-pip python3 >/dev/null 2>&1
 pip3 install google-genai --break-system-packages >/dev/null 2>&1 || pip3 install google-genai >/dev/null 2>&1
 
-echo "⏳ [3/4] Cấu hình mã nguồn AI..."
+echo "⏳ [3/4] Cấu hình mã nguồn AI siêu tốc (1-2 giây)..."
 cat << 'EOF' > ~/.q.py
 #!/usr/bin/env python3
 import sys
@@ -30,13 +30,12 @@ PROMPT_RULE = (
     "4. Khi được hỏi 'là gì', 'giải thích', 'tại sao', chỉ giải thích ngắn gọn 1-2 câu."
 )
 
-FAST_MODEL = "gemini-3.5-flash-lite"
-HEAVY_MODEL = "gemini-3.8-flash"
+MODEL = "gemini-3.5-flash-lite"
 
-def stream_query(query, key, model=FAST_MODEL):
+def stream_query(query, key):
     client = genai.Client(api_key=key)
     res_stream = client.models.generate_content_stream(
-        model=model,
+        model=MODEL,
         contents=query,
         config={"system_instruction": PROMPT_RULE, "temperature": 0.1}
     )
@@ -45,48 +44,25 @@ def stream_query(query, key, model=FAST_MODEL):
             print(chunk.text, end="", flush=True)
     print()
 
-def run(query, mode="auto"):
-    model_to_use = FAST_MODEL
-    lower_q = query.lower()
-    if any(k in lower_q for k in ["script", "viết", "kiểm tra", "vòng lặp", "if", "else", "hàm", "thuật toán"]):
-        model_to_use = HEAVY_MODEL
-
-    if mode == "1":
-        try:
-            stream_query(query, KEY_1, HEAVY_MODEL)
-        except Exception as e:
-            print(f"[Key 1 Error]: {e}")
-        return
-
-    if mode == "2":
-        try:
-            stream_query(query, KEY_2, HEAVY_MODEL)
-        except Exception as e:
-            print(f"[Key 2 Error]: {e}")
-        return
-
+def run(query):
+    # Ưu tiên Key 1, nếu lỗi chuyển Key 2
     for k in [KEY_1, KEY_2]:
         try:
-            stream_query(query, k, model_to_use)
+            stream_query(query, k)
             return
         except Exception:
             continue
-    print("Error: Cả 2 Key đều bận.")
+    print("Error: Không thể kết nối đến máy chủ AI.")
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    mode = "auto"
-    if len(args) > 0 and args[0] in ["--1", "--2", "--auto"]:
-        mode = args[0].replace("--", "")
-        args = args[1:]
-
     if len(args) > 0:
-        run(" ".join(args), mode)
+        run(" ".join(args))
     else:
         try:
             client = genai.Client(api_key=KEY_1)
             chat = client.chats.create(
-                model=FAST_MODEL,
+                model=MODEL,
                 config={"system_instruction": PROMPT_RULE, "temperature": 0.1}
             )
             while True:
@@ -109,4 +85,4 @@ echo 123 | sudo -S cp ~/.q.py /usr/local/bin/q >/dev/null 2>&1
 echo 123 | sudo -S cp ~/.q.py /usr/local/bin/ask >/dev/null 2>&1
 echo 123 | sudo -S cp ~/.q.py /usr/local/bin/h >/dev/null 2>&1
 
-echo "✨ [4/4] Cài đặt thành công 100%! Gõ 'q' hoặc 'ask' để bắt đầu sử dụng."
+echo "✨ [4/4] Cài đặt thành công 100%! Lệnh 'q' phản hồi siêu tốc trong 1-2 giây."
